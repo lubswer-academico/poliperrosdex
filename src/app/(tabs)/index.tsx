@@ -1,0 +1,1 @@
+export { PokedexScreen as default } from '@/ui/pokedex/pokedex-screen';

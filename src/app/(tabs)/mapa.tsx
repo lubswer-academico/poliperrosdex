@@ -1,0 +1,1 @@
+export { MapaScreen as default } from '@/ui/mapa/mapa-screen';

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Poliperrodex — Arquitectura MVVM y Capa de Datos",
+    "output": ".archify/architecture-poliperrodex-20261111-154200/poliperrodex.html",
+    "locale": "es",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "Entrenador (Usuario)", "sublabel": "Estudiante con móvil", "pos": [20, 50], "size": [160, 54] },
+    { "id": "routes", "type": "frontend", "label": "Expo Router", "sublabel": "src/app (_layout, tabs, perro)", "pos": [210, 50], "size": [150, 54], "tag": "Rutas delgadas" },
+    { "id": "views", "type": "frontend", "label": "Vistas UI (React Native)", "sublabel": "Pokedex, Captura, Perfil, Mapa", "pos": [390, 50], "size": [160, 54], "tag": "src/ui/*" },
+    { "id": "osm", "type": "cloud", "label": "OpenStreetMap", "sublabel": "tile.openstreetmap.org", "pos": [920, 50], "size": [160, 54], "tag": "Mosaicos OSM" },
+
+    { "id": "viewmodels", "type": "frontend", "label": "ViewModels (Hooks)", "sublabel": "usePokedex, useCaptura, usePerfil...", "pos": [210, 170], "size": [170, 56], "tag": "Estado & Comandos" },
+    { "id": "apodo_vm", "type": "frontend", "label": "Apodo ViewModel", "sublabel": "ApodoContext compartido", "pos": [410, 170], "size": [160, 56], "tag": "src/ui/core" },
+    { "id": "domain", "type": "frontend", "label": "Modelos de Dominio", "sublabel": "Perro, Avistamiento", "pos": [600, 170], "size": [150, 56], "tag": "src/domain/models" },
+
+    { "id": "repo_perros", "type": "backend", "label": "Perros Repository", "sublabel": "listar(), obtener(id)", "pos": [140, 290], "size": [150, 56], "tag": "Lectura catálogo" },
+    { "id": "repo_avistamientos", "type": "backend", "label": "Avistamientos Repo", "sublabel": "registrarCaptura() + AbortSignal", "pos": [320, 290], "size": [180, 56], "tag": "Captura atómica" },
+    { "id": "repo_entrenador", "type": "backend", "label": "Entrenador Repo", "sublabel": "leerApodo(), guardarApodo()", "pos": [530, 290], "size": [160, 56], "tag": "Persistencia apodo" },
+    { "id": "service_sensores", "type": "backend", "label": "Acelerómetro & GPS", "sublabel": "escucharCaidas, obtenerUbicacion", "pos": [720, 290], "size": [170, 56], "tag": "Detección caídas" },
+
+    { "id": "service_supabase", "type": "backend", "label": "Supabase Service", "sublabel": "Cliente supabase-js & Storage", "pos": [230, 410], "size": [170, 56], "tag": "PostgREST & Upload" },
+    { "id": "service_fs", "type": "backend", "label": "Expo File System", "sublabel": "Paths.document / apodo.txt", "pos": [530, 410], "size": [160, 56], "tag": "Almacenamiento local" },
+    { "id": "hardware", "type": "external", "label": "Sensores del Teléfono", "sublabel": "Cámara, GPS, Acelerómetro", "pos": [920, 290], "size": [160, 56], "tag": "Hardware móvil" },
+
+    { "id": "supabase_db", "type": "database", "label": "Supabase Postgres", "sublabel": "Tablas perros y avistamientos", "pos": [140, 530], "size": [160, 56], "tag": "RLS Policies" },
+    { "id": "supabase_storage", "type": "cloud", "label": "Supabase Storage", "sublabel": "Bucket 'poliperrodex' / capturas", "pos": [330, 530], "size": [170, 56], "tag": "Archivos JPG" }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Capa de Presentación (UI & MVVM)",
+      "wraps": ["routes", "views", "viewmodels", "apodo_vm", "domain"],
+      "pad": 16
+    },
+    {
+      "kind": "region",
+      "label": "Capa de Datos (Repositories & Services)",
+      "wraps": ["repo_perros", "repo_avistamientos", "repo_entrenador", "service_sensores", "service_supabase", "service_fs"],
+      "pad": 16
+    },
+    {
+      "kind": "region",
+      "label": "Backend BaaS (Supabase Cloud)",
+      "wraps": ["supabase_db", "supabase_storage"],
+      "pad": 16
+    }
+  ],
+  "connections": [
+    { "id": "user-interacts", "from": "user", "to": "views", "label": "Interactúa", "variant": "emphasis" },
+    { "id": "routes-reexport", "from": "routes", "to": "views", "label": "Reexporta ruta" },
+    { "id": "views-leaflet", "from": "views", "to": "osm", "label": "Leaflet WebView", "variant": "dashed" },
+    { "id": "views-viewmodels", "from": "views", "to": "viewmodels", "label": "Comandos & Estado" },
+    { "id": "views-apodo", "from": "views", "to": "apodo_vm", "label": "useApodo()" },
+    { "id": "vm-domain", "from": "viewmodels", "to": "domain", "label": "Modelos Perro / Avistamiento" },
+    { "id": "vm-repo-perros", "from": "viewmodels", "to": "repo_perros", "label": "listar() / obtener()" },
+    { "id": "vm-repo-avistamientos", "from": "viewmodels", "to": "repo_avistamientos", "label": "registrarCaptura()" },
+    { "id": "vm-sensores", "from": "viewmodels", "to": "service_sensores", "label": "Caída / Ubicación" },
+    { "id": "apodo-repo", "from": "apodo_vm", "to": "repo_entrenador", "label": "Lee / guarda" },
+    { "id": "repo-perros-supabase", "from": "repo_perros", "to": "service_supabase", "label": "Consulta API" },
+    { "id": "repo-avist-supabase", "from": "repo_avistamientos", "to": "service_supabase", "label": "Subida y guardado" },
+    { "id": "repo-entrenador-fs", "from": "repo_entrenador", "to": "service_fs", "label": "Escribe archivo" },
+    { "id": "sensores-hardware", "from": "service_sensores", "to": "hardware", "label": "Eventos de sensor" },
+    { "id": "supabase-db", "from": "service_supabase", "to": "supabase_db", "label": "PostgREST :443", "variant": "emphasis" },
+    { "id": "supabase-storage", "from": "service_supabase", "to": "supabase_storage", "label": "S3 Storage API", "variant": "emphasis" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Arquitectura MVVM Estricta",
+      "items": [
+        "Las rutas en src/app solo reexportan pantallas sin lógica de negocio",
+        "Las Vistas nunca importan repositorios ni tocan Supabase directamente (controlado por ESLint)",
+        "Los ViewModels preparan el estado para la UI y exponen comandos asíncronos"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Patrón Repository y Dominio",
+      "items": [
+        "Repositorios mapean respuestas de PostgREST a modelos de dominio inmutables (Perro, Avistamiento)",
+        "registrarCaptura coordina subida a Storage e inserción SQL con cancelación por AbortSignal",
+        "EntrenadorRepository encapsula la persistencia del apodo en apodo.txt"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Hardware y Seguridad Supabase",
+      "items": [
+        "Acelerómetro detecta caída libre (<0.55g) seguida de impacto (>1.8g) para descartar capturas",
+        "Políticas RLS en Postgres restringen lecturas e inserciones públicas anónimas",
+        "El WebView con Leaflet carga mosaicos de OpenStreetMap con baseUrl configurada"
+      ]
+    }
+  ]
+}

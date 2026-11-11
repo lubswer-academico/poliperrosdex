@@ -1,0 +1,1 @@
+export { CapturaScreen as default } from '@/ui/captura/captura-screen';
